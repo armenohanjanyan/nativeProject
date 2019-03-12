@@ -32,7 +32,7 @@ export default class App extends React.Component {
     };
     firebase.initializeApp(config);
 
-    firebase.database().ref('comments').once('value', (data) => {
+    firebase.database().ref('comments').on('value', (data) => {
       let arr = Object.values(data.toJSON());
       this.setState({ comments: arr })
     });
@@ -114,14 +114,14 @@ export default class App extends React.Component {
         }}>
           <View style={{ width: '100%', height: '100%' }}>
             {comments.map((el, i) => i % 2 === 0 ? (
-              <View style={{ backgroundColor: '#DCDCDC', padding: 10, width: '100%', marginTop: 10 }} key={i}>
-                <Text style={{ fontSize: 10, textAlign: 'center' }}>{el.nickName}</Text>
-                <Text style={{ fontSize: 15 }}>{el.text}</Text>
+              <View style={{ backgroundColor: '#F5F5DC', padding: 10, width: '100%', marginTop: 10, width: '60%', marginStart: '5%', borderRadius: 15 }} key={i}>
+                <Text style={{ fontSize: 11,  marginBottom: 4 }}>{el.nickName}</Text>
+                <Text style={{ fontSize: 9 }}>{el.text}</Text>
               </View>
             ) : (
-                <View style={{ backgroundColor: '#D3D3D3', padding: 10, width: '100%', marginTop: 10 }}>
-                  <Text style={{ fontSize: 10, textAlign: 'center' }}>{el.nickName}</Text>
-                  <Text style={{ fontSize: 15 }}>{el.text}</Text>
+                <View style={{ backgroundColor: '#D3D3D3', padding: 10, width: '100%', marginTop: 10,  width: '60%', marginStart: '30%',  borderRadius: 15  }}>
+                  <Text style={{ fontSize: 11, marginBottom: 4 }}>{el.nickName}</Text>
+                  <Text style={{ fontSize: 9 }}>{el.text}</Text>
                 </View>
               ))}
           </View >
