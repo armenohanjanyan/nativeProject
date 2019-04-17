@@ -1,6 +1,8 @@
 import React from 'react';
 import firebase from 'firebase';
 import { createStyles, maxHeight, minHeight } from 'react-native-media-queries';
+import { Icon } from 'react-native-elements'
+import Swiper from "react-native-web-swiper";
 
 
 import {
@@ -13,6 +15,7 @@ import {
   KeyboardAvoidingView,
   ScrollView,
   WebView,
+  ListView,
   Keyboard,
   Alert,
   TouchableOpacity
@@ -20,6 +23,13 @@ import {
 
 
 export default class App extends React.Component {
+  constructor(props) {
+    super(props);
+
+    this.scroll = React.createRef();
+    this.scrollToEnd = false;
+  }
+  
 
   componentWillMount() {
     var config = {
@@ -34,8 +44,12 @@ export default class App extends React.Component {
 
     firebase.database().ref('comments').on('value', (data) => {
       let arr = Object.values(data.toJSON());
-      this.setState({ comments: arr })
+      this.setState({ comments: arr });
     });
+    
+  }
+
+  componentDidMount() {
   }
 
   state = {
@@ -65,15 +79,16 @@ export default class App extends React.Component {
     if (comment.text !== '') {
       this.setState({
         comments: comments.concat(comment),
-      
+
       })
       firebase.database().ref('comments/').set({
         ...comments,
-           comment
+        comment
       });
-       
+
       Keyboard.dismiss()
-      this.setState({comment: {text: '', nickName: this.state.userName}})
+      this.scrollToEnd = false;
+      this.setState({ comment: { text: '', nickName: this.state.userName } })
     }
   }
 
@@ -83,7 +98,7 @@ export default class App extends React.Component {
 
   goToComments = () => {
     if (this.state.userName) {
-      this.setState({ user: true, comment: {nickName: this.state.userName } });
+      this.setState({ user: true, comment: { nickName: this.state.userName }});
     }
   }
 
@@ -92,165 +107,231 @@ export default class App extends React.Component {
     const { comment } = this.state;
     const { userName } = this.state;
     const { user } = this.state;
-    {console.log('hello')}
-
+    if(user && !this.scrollToEnd) {
+      this.scrollToEnd = true;
+      setTimeout(() => {
+        this.scroll.current.scrollToEnd();
+      }, 0)
+    }
     return (
-      <KeyboardAvoidingView style={styles.container} behavior="padding" enabled>
+      <View style={styles.container}>
         <View style={style.logoContainer}>
-          <Image style={style.logo} source={require('./assets/log1.png')} />
+          <Image resizeMode="contain" style={style.logo} source={require('./assets/xt.png')} />
         </View>
-        <View style={style.webWiewContainer}>
-          <WebView
-            allowsInlineMediaPlayback={true}
-            mediaPlaybackRequiresUserAction={false}
-            source={{ uri: "https://player.twitch.tv/?channel=tvxarm"}}
-            style={{ width: '100%', height: '100%'  }}
-          />
-        </View>
-        {user ? <ScrollView style={{
-          height: '100%',
-          backgroundColor: '#DCDCDC',
-          marginHorizontal: 20
-        }}>
-          <View style={{ width: '100%', height: '100%' }}>
-            {comments.map((el, i) => i % 2 === 0 ? (
-              <View style={{ backgroundColor: '#F5F5DC', padding: 10, width: '100%', marginTop: 10, width: '60%', marginStart: '5%', borderRadius: 15 }} key={i}>
-                <Text style={{ fontSize: 11,  marginBottom: 4 }}>{el.nickName}</Text>
-                <Text style={{ fontSize: 9 }}>{el.text}</Text>
-              </View>
-            ) : (
-                <View style={{ backgroundColor: '#D3D3D3', padding: 10, width: '100%', marginTop: 10,  width: '60%', marginStart: '30%',  borderRadius: 15  }}>
-                  <Text style={{ fontSize: 11, marginBottom: 4 }}>{el.nickName}</Text>
-                  <Text style={{ fontSize: 9 }}>{el.text}</Text>
-                </View>
-              ))}
-          </View >
-        </ScrollView> : <ScrollView style={style.logIn}>
-            <View style={{
-              width: '100%',
-            }}>
-              <View style={{
-                flex: 1,
-                flexDirection: 'column',
-                justifyContent: 'center',
-                width: '100%',
-              }}>
-                <Text style={{ color: 'white', fontSize: 20, width: '100%', paddingTop: 20, textAlign: 'center' }}>
-                  Enter Your nickname to join conversation
-               </Text>
-                <View style={{ padding: 30 }}>
-                  <TextInput
-                    style={{
-                      height: 30,
-                      paddingStart: 20,
-                      borderRadius: 20,
-                      backgroundColor: 'white',
-                      width: '100%'
-                    }}
-                    onChangeText={e => this.setUserName(e)}
-                    value={userName}
-                  />
-                </View>
-                <View style={{
-                  flexDirection: 'row',
-                  justifyContent: 'space-around',
-                  width: '100%',
-                  height: 50,
-                  padding: 5
-                }}>
-                  {/* <View style={{ backgroundColor: '#808080' }}>
-                    <Button
-                      title="Accept"
-                      color="white"
-                      onPress={() => this.goToComments()}
-                    />
-                  </View> */}
-                     <View style={{ backgroundColor: '#980B0B', borderRadius: 30, height: 60, width: 60, paddingVertical: 10 }}>
-                    <Button
-                      style={{fontSize: 7}}
-                      title="Start"
-                      color="white"
-                      onPress={() => this.goToComments()}
-                    />
+        <KeyboardAvoidingView style={styles.container} behavior="position" enabled>
+          <ScrollView>
+            <View style={style.webWiewContainer}>
+              <WebView
+                allowsInlineMediaPlayback={true}
+                mediaPlaybackRequiresUserAction={false}
+                source={{ uri: "https://player.twitch.tv/?channel=tvxarm" }}
+                style={{ width: '100%', height: '100%' }}
+              />
+            </View>
+            <View style={style.bannerContainer}>
+              <View style={style.banner}>
+                {/* <Image style={style.bannerImage} source={require('./assets/cola.jpg')} /> */}
+                <Swiper
+                  prevButtonText=""
+                  nextButtonText=""
+                  activeDotStyle={{ backgroundColor: 'black' }}
+                  loop
+                  autoplayTimeout={2.5}
+                  overRangeButtonsOpacity={0.3}>
+                  <View style={[styles.slideContainer, styles.slide1]}>
+                    <Image style={style.bannerImage} source={require('./assets/Hovo.jpg')} />
                   </View>
-                </View>
+                  <View style={[styles.slideContainer, styles.slide2]}>
+                    <Image resizeMode="stretch" style={style.bannerImage} source={require('./assets/pc.jpg')} />
+                  </View>
+                  <View style={[styles.slideContainer, styles.slide3]}>
+                    <Image resizeMode="stretch" style={style.bannerImage} source={require('./assets/silGroup.jpg')} />
+                  </View>
+                  <View style={[styles.slideContainer, styles.slide3]}>
+                    <Image resizeMode="stretch" style={style.bannerImage} source={require('./assets/aeb.png')} />
+                  </View>
+                  <View style={[styles.slideContainer, styles.slide3]}>
+                    <Image resizeMode="stretch" style={style.bannerImage} source={require('./assets/maza.png')} />
+                  </View>
+                  <View style={[styles.slideContainer, styles.slide3]}>
+                    <Image resizeMode="stretch" style={style.bannerImage} source={require('./assets/mall.jpg')} />
+                  </View>
+                </Swiper>
               </View>
-            </View >
-          </ScrollView>}
-        { user ? <View style={styles.inputContainer}>
-          <TextInput
-            onChangeText={(e) => this.addCommentText(e)}
-            style={styles.input}
-            value={comment.text}
-          />
-          <View style={{ width: '20%', backgroundColor: '#A9A9A9', height: 50, padding: 5 }}>
-            <Button
-              title="Send"
-              color="black"
-              onPress={() => this.addComment()}
-            />
-          </View>
-        </View> : null}
-      </KeyboardAvoidingView>
+            </View>
+            {user ? <View
+              snapToEnd
+              style={style.commentsContainer}>
+              <ScrollView
+                      ref={this.scroll}
+                      style={{ width: '100%', height: '100%' }}>
+                {comments.map((el, i) => i % 2 === 0 ? (
+                  <View key={i} style={{ marginBottom: 5, backgroundColor: '#F5F5DC', padding: 10, width: '100%', marginTop: 10, width: '60%', marginStart: '5%', borderRadius: 15 }} key={i}>
+                    <Text style={{ fontSize: 11, marginBottom: 4 }}>{el.nickName}</Text>
+                    <Text style={{ fontSize: 9 }}>{el.text}</Text>
+                  </View>
+                ) : (
+                    <View key={i} style={{marginBottom: 5, backgroundColor: '#D3D3D3', padding: 10, width: '100%', marginTop: 10, width: '60%', marginStart: '30%', borderRadius: 15, }}>
+                      <Text style={{ fontSize: 11, marginBottom: 4 }}>{el.nickName}</Text>
+                      <Text style={{ fontSize: 9 }}>{el.text}</Text>
+                    </View>
+                  ))}
+              </ScrollView >
+            </View> : <View style={style.logIn}>
+                <View style={{
+                  width: '100%',
+                }}>
+                  <View style={{ paddingHorizontal: 30, paddingVertical: 5 }}>
+                    <Text style={{ color: 'white', fontSize: 15, width: '100%', paddingTop: 10, textAlign: 'center' }}>
+                      Enter Your nickname to join conversation
+               </Text>
+                    <View style={{ paddingHorizontal: 30, paddingVertical: 10 }}>
+                      <TextInput
+                        style={{
+                          height: 30,
+                          paddingStart: 20,
+                          borderRadius: 20,
+                          backgroundColor: 'white',
+                          width: '100%'
+                        }}
+                        onChangeText={e => this.setUserName(e)}
+                        value={userName}
+                      />
+                    </View>
+                    <View style={{
+                      flexDirection: 'row',
+                      justifyContent: 'space-around',
+                      width: '100%',
+                      height: 50,
+                      padding: 5
+                    }}>
+                      <View style={{ backgroundColor: '#980B0B', borderRadius: 30, height: 60, width: 60, paddingVertical: 10 }}>
+                        <Button
+                          style={{ fontSize: 7 }}
+                          title="Start"
+                          color="white"
+                          onPress={() => this.goToComments()}
+                        />
+                      </View>
+                    </View>
+                  </View>
+                </View >
+              </View>}
+            {user ? <View style={styles.inputContainer}>
+              <TextInput
+                onChangeText={(e) => this.addCommentText(e)}
+                style={styles.input}
+                value={comment.text}
+              />
+              <View style={{ width: '20%', backgroundColor: 'white', height: 40, padding: 2, borderTopColor: '#B4A8A8', borderTopWidth: 1 }}>
+                <Icon
+                  name='sc-telegram'
+                  type='evilicon'
+                  color='black'
+                  size={40}
+                  onPress={() => this.addComment()}
+                />
+              </View>
+            </View> : null}
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </View>
+
     );
   }
 }
 const base = {
-  logo: {
-    height: 70,
+  logoContainer: {
+    height: 60,
     width: '100%',
+    backgroundColor: 'rgb(27,28,32)',
+    zIndex: 100,
   },
-    logIn: {
-      height: '100%',
-      backgroundColor: 'black',
-      marginHorizontal: 20,
+  logo: {
+    height: 60,
+    zIndex: 102
+  },
+  logIn: {
+    height: 170,
+    backgroundColor: 'black',
+    marginHorizontal: 20,
   },
   webWiewContainer: {
-    height: 350, 
-    width: '100%', 
-    padding: 20 
+    height: 310,
+    width: '100%',
+    paddingHorizontal: 20,
+    paddingVertical: 10
   },
-  logoContainer: {
-    height: 70, 
-    width: '100%', 
-    backgroundColor: 'white' 
+  commentsContainer: {
+    height: 140,
+    backgroundColor: '#DCDCDC',
+    marginHorizontal: 20,
   },
+  bannerContainer: {
+    height: 110,
+    width: '100%',
+    margin: 'auto',
+    paddingHorizontal: 20,
+    marginBottom: 10
+  },
+  banner: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: 'white',
+  },
+  bannerImage: {
+    height: 110,
+    width: "70%",
+  }
 };
 
-const base1 = {
-  
-}
- 
 const style = createStyles(
   base,
- 
+
   minHeight(700, {
     logo: {
-      height: 35,
-      marginTop: 30,
-      },
-      logIn: {
-        padding: 50
-      },
-      webWiewContainer: {
-        height: 400
-      }
-    }),
-    maxHeight(650, {
-      webWiewContainer: {
-        height: 250
-      },
-      logoContainer: {
-        height: 40,
-        paddingTop: 10
-      },
-      logo: {
-        height: 40,
-      }
-    })
-  )
+      height: 70,
+      zIndex: 100,
+    },
+    logoContainer: {
+      height: 70,
+    },
+    logIn: {
+      padding: 10,
+      paddingVertical: 30,
+      height: 220,
+    },
+    webWiewContainer: {
+      height: 380
+    },
+    commentsContainer: {
+      height: 185
+    },
+    bannerContainer: {
+      height: 110,
+      width: '100%',
+      paddingHorizontal: 20,
+      marginBottom: 10
+    },
+    bannerImage: {
+      height: 110,
+    }
+  }),
+  maxHeight(650, {
+    webWiewContainer: {
+      height: 250
+    },
+    logoContainer: {
+      height: 50,
+      zIndex: 100
+    },
+    logo: {
+      height: 50,
+    },
+  })
+)
 
-  
+
 
 
 
@@ -259,6 +340,7 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'column',
     backgroundColor: 'rgb(49, 50, 54)',
+    height: '100%'
   },
   inputContainer: {
     zIndex: 20,
@@ -269,17 +351,28 @@ const styles = StyleSheet.create({
   },
   input: {
     width: '80%',
-    borderWidth: 1,
-    height: 50,
+    borderTopWidth: 1,
+    height: 40,
     backgroundColor: '#ffffff',
-    borderColor: '#B4A8A8',
+    borderTopColor: '#B4A8A8',
     paddingLeft: 15,
     paddingRight: 15,
   },
-  nickName: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    bottom: 0,
-    paddingHorizontal: 20
+  contentContainer: {
+    paddingVertical: 20
+  },
+  slideContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  slide1: {
+    backgroundColor: 'white',
+  },
+  slide2: {
+    backgroundColor: 'white',
+  },
+  slide3: {
+    backgroundColor: 'white',
   },
 });
